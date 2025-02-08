@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style.css">
+  <title>Deepfake Detector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+    }
+    .container {
+      text-align: center;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 350px;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .preview img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .loading {
+      display: none;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #555;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .progress-container {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 20px;
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      transition: width 0.5s ease;
+    }
+    .progress-label {
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Deepfake Detector</h1>
+    <form id="uploadForm">
+      <input type="file" id="imageUpload" accept="image/jpeg" required />
+      <label for="imageUpload">Choose File</label>
+      <button type="submit">Predict</button>
+    </form>
+    <div class="preview" id="preview"></div>
+    <div class="loading" id="loading">Loading...</div>
+    <div class="result" id="result"></div>
+    <div class="progress-container">
+      <span class="progress-label">FAKE</span>
+      <div class="progress-bar" id="fakeProgress">
+        <div class="progress-fill" style="background-color: red;"></div>
+      </div>
+      <span class="progress-label" id="fakePercentage">0%</span>
+    </div>
+    <div class="progress-container">
+      <span class="progress-label">REAL</span>
+      <div class="progress-bar" id="realProgress">
+        <div class="progress-fill" style="background-color: green;"></div>
+      </div>
+      <span class="progress-label" id="realPercentage">0%</span>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const preview = document.getElementById("preview");
+    const loading = document.getElementById("loading");
+    const resultDiv = document.getElementById("result");
+    const fakeProgressFill = document.querySelector("#fakeProgress .progress-fill");
+    const realProgressFill = document.querySelector("#realProgress .progress-fill");
+    const fakePercentage = document.getElementById("fakePercentage");
+    const realPercentage = document.getElementById("realPercentage");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById("imageUpload");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please upload an image.");
+        return;
+      }
+
+      // Display the uploaded image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width: 100%; margin-top: 10px;">`;
+      };
+      reader.readAsDataURL(file);
+
+      // Show loading indicator
+      loading.style.display = "block";
+      resultDiv.textContent = "";
+      fakeProgressFill.style.width = "0%";
+      realProgressFill.style.width = "0%";
+      fakePercentage.textContent = "0%";
+      realPercentage.textContent = "0%";
+
+      // Send the file to the Flask backend
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          resultDiv.textContent = `Error: ${data.error}`;
+          resultDiv.style.color = "red";
+        } else {
+          const fakeProb = data.fake_probability;
+          const realProb = data.real_probability;
+
+          // Update progress bars and percentages
+          fakeProgressFill.style.width = `${fakeProb}%`;
+          realProgressFill.style.width = `${realProb}%`;
+          fakePercentage.textContent = `${fakeProb}%`;
+          realPercentage.textContent = `${realProb}%`;
+
+          // Display the final result
+          if (fakeProb > realProb) {
+            resultDiv.textContent = "The image is FAKE.";
+            resultDiv.style.color = "red";
+          } else {
+            resultDiv.textContent = "The image is REAL.";
+            resultDiv.style.color = "green";
+          }
+        }
+      } catch (error) {
+        console.error("Error during fetch:", error);
+        resultDiv.textContent = "An error occurred during prediction.";
+        resultDiv.style.color = "red";
+      } finally {
+        loading.style.display = "none";
+      }
+    });
+  </script>
+<footer>
+  <p>Made by Shri Ram Dwivedi & Ananya Shahi</p>
+  <p>Contact: <a href="mailto:raunakd511@gmail.com">raunakd511@gmail.com</a></p>
+</footer>
+</body>
+</html>

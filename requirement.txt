@@ -1,0 +1,39 @@
+# Core Dependencies
+tensorflow==2.10.0
+numpy==1.23.5
+Flask==2.3.3
+Pillow==10.0.0
+python-dotenv==1.0.0
+
+# TensorFlow Dependencies
+keras==2.10.0
+h5py==3.9.0
+tensorboard==2.10.0
+
+# Image Processing
+opencv-python==4.8.0.76
+scikit-image==0.21.0
+
+# Web Server
+Werkzeug==2.3.7
+gunicorn==21.2.0
+
+# Utilities
+requests==2.31.0
+tqdm==4.66.1
+
+# Development Tools
+pytest==7.4.2
+black==23.7.0
+flake8==6.1.0
+
+# System Requirements:
+# Python 3.9
+# CUDA Toolkit (for GPU support)
+# cuDNN (for GPU support)
+
+# Notes:
+# - Use Python 3.9 for optimal compatibility
+# - GPU support requires compatible NVIDIA drivers
+# - Minimum 8GB RAM recommended
+# - Storage space: ~500MB for model and dependencies
